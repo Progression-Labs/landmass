@@ -35,7 +35,14 @@ pub type Agent3dBundle = AgentBundle<ThreeD>;
 
 /// A marker component to create all required components for an agent.
 #[derive(Component)]
-#[require(Transform, Velocity<CS>, AgentTarget<CS>, AgentState, AgentDesiredVelocity<CS>)]
+#[require(
+  Transform,
+  Velocity<CS>,
+  AgentTarget<CS>,
+  AgentState,
+  AgentDesiredVelocity<CS>,
+  AgentUpcomingCorners<CS>
+)]
 pub struct Agent<CS: CoordinateSystem>(PhantomData<CS>);
 
 pub type Agent2d = Agent<TwoD>;
@@ -183,6 +190,28 @@ impl<CS: CoordinateSystem> AgentDesiredVelocity<CS> {
   /// The desired velocity of the agent.
   pub fn velocity(&self) -> CS::Coordinate {
     self.0.clone()
+  }
+}
+
+/// The next points of the agent's straight path, nearest first (see
+/// [`landmass::Agent::upcoming_corners`]). This is set by `landmass` (during
+/// [`crate::LandmassSystemSet::Output`]).
+#[derive(Component)]
+pub struct AgentUpcomingCorners<CS: CoordinateSystem>(Vec<CS::Coordinate>);
+
+pub type AgentUpcomingCorners2d = AgentUpcomingCorners<TwoD>;
+pub type AgentUpcomingCorners3d = AgentUpcomingCorners<ThreeD>;
+
+impl<CS: CoordinateSystem> Default for AgentUpcomingCorners<CS> {
+  fn default() -> Self {
+    Self(Vec::new())
+  }
+}
+
+impl<CS: CoordinateSystem> AgentUpcomingCorners<CS> {
+  /// The next points of the straight path, nearest first.
+  pub fn corners(&self) -> &[CS::Coordinate] {
+    &self.0
   }
 }
 
@@ -439,7 +468,12 @@ pub(crate) fn sync_agent_state<CS: CoordinateSystem>(
 /// equivalent.
 pub(crate) fn sync_desired_velocity<CS: CoordinateSystem>(
   mut agent_query: Query<
-    (Entity, &ArchipelagoRef<CS>, &mut AgentDesiredVelocity<CS>),
+    (
+      Entity,
+      &ArchipelagoRef<CS>,
+      &mut AgentDesiredVelocity<CS>,
+      &mut AgentUpcomingCorners<CS>,
+    ),
     With<AgentSettings>,
   >,
   archipelago_query: Query<&Archipelago<CS>>,
@@ -448,6 +482,7 @@ pub(crate) fn sync_desired_velocity<CS: CoordinateSystem>(
     agent_entity,
     &ArchipelagoRef { entity: arch_entity, .. },
     mut desired_velocity,
+    mut corners,
   ) in agent_query.iter_mut()
   {
     let archipelago = match archipelago_query.get(arch_entity).ok() {
@@ -455,11 +490,12 @@ pub(crate) fn sync_desired_velocity<CS: CoordinateSystem>(
       Some(arch) => arch,
     };
 
-    desired_velocity.0 = archipelago
+    let agent = archipelago
       .get_agent(agent_entity)
-      .expect("the agent is in the archipelago")
-      .get_desired_velocity()
-      .clone();
+      .expect("the agent is in the archipelago");
+    desired_velocity.0 = agent.get_desired_velocity().clone();
+    corners.0.clear();
+    corners.0.extend(agent.upcoming_corners().iter().cloned());
   }
 }
 

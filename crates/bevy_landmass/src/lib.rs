@@ -51,6 +51,8 @@ pub mod prelude {
   pub use crate::AgentState;
   pub use crate::AgentTarget2d;
   pub use crate::AgentTarget3d;
+  pub use crate::AgentUpcomingCorners2d;
+  pub use crate::AgentUpcomingCorners3d;
   pub use crate::AnimationLink2d;
   pub use crate::AnimationLink2dBundle;
   pub use crate::AnimationLink3d;

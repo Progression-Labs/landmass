@@ -46,6 +46,10 @@ pub enum AgentState {
   Paused,
 }
 
+/// How many of its straight path's next points an agent keeps
+/// ([`Agent::upcoming_corners`]).
+pub const UPCOMING_CORNERS: usize = 4;
+
 /// An agent in an archipelago.
 pub struct Agent<CS: CoordinateSystem> {
   /// The current position of the agent.
@@ -95,6 +99,9 @@ pub struct Agent<CS: CoordinateSystem> {
   pub(crate) current_path: Option<Path>,
   /// The desired velocity of the agent to move towards its goal.
   pub(crate) current_desired_move: CS::Coordinate,
+  /// The next points of the agent's straight path, nearest first (see
+  /// [`Agent::upcoming_corners`]).
+  pub(crate) current_corners: Vec<CS::Coordinate>,
   /// The state of the agent.
   pub(crate) state: AgentState,
   /// The animation link that the agent has reached. This includes the
@@ -211,6 +218,7 @@ impl<CS: CoordinateSystem> Agent<CS> {
       override_type_index_to_cost: HashMap::new(),
       current_path: None,
       current_desired_move: CS::from_landmass(&Vec3::ZERO),
+      current_corners: Vec::new(),
       state: AgentState::Idle,
       current_animation_link: None,
       using_animation_link: false,
@@ -256,6 +264,18 @@ impl<CS: CoordinateSystem> Agent<CS> {
   /// called on the associated [`crate::Archipelago`].
   pub fn get_desired_velocity(&self) -> &CS::Coordinate {
     &self.current_desired_move
+  }
+
+  /// Returns the next points of the agent's straight path, nearest first: the
+  /// waypoint the desired velocity points at, then up to
+  /// [`UPCOMING_CORNERS`]` - 1` after it, ending at the target or at an
+  /// animation link's start. Empty without a path. For a body that has to
+  /// commit to a direction before it gets there (a motion generated ahead of
+  /// time turns a corner late unless it can see the corner coming). This will
+  /// only be updated if `update` was called on the associated
+  /// [`crate::Archipelago`].
+  pub fn upcoming_corners(&self) -> &[CS::Coordinate] {
+    &self.current_corners
   }
 
   /// Returns the state of the agent. This will only be updated if `update` was

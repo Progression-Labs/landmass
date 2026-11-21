@@ -30,6 +30,7 @@ pub mod debug;
 pub use agent::{
   Agent, AgentId, AgentState, NotReachedAnimationLinkError,
   PermittedAnimationLinks, ReachedAnimationLink, TargetReachedCondition,
+  UPCOMING_CORNERS,
 };
 pub use character::{Character, CharacterId};
 pub use coords::{
@@ -424,6 +425,7 @@ impl<CS: CoordinateSystem> Archipelago<CS> {
     }
 
     for (agent_id, agent) in self.agents.iter_mut() {
+      agent.current_corners.clear();
       let path = match &agent.current_path {
         None => {
           agent.current_desired_move = CS::from_landmass(&Vec3::ZERO);
@@ -467,6 +469,25 @@ impl<CS: CoordinateSystem> Archipelago<CS> {
         agent.current_desired_move = CS::from_landmass(&Vec3::ZERO);
         agent.state = AgentState::ReachedTarget;
       } else {
+        // The straight path's next corners, for whoever has to see a turn
+        // coming: the waypoint aimed at, then on until the target or an
+        // animation link.
+        let mut step = next_waypoint;
+        while let StraightPathStep::Waypoint(point) = step.1 {
+          agent.current_corners.push(CS::from_landmass(&point));
+          if agent.current_corners.len() >= agent::UPCOMING_CORNERS
+            || step.0 == target_node_index_in_corridor
+          {
+            break;
+          }
+          step = path.find_next_point_in_straight_path(
+            &self.nav_data,
+            step.0,
+            point,
+            target_node_index_in_corridor,
+            target_point,
+          );
+        }
         let waypoint = match next_waypoint.1 {
           StraightPathStep::Waypoint(point) => {
             agent.state = AgentState::Moving;

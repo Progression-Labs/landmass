@@ -297,7 +297,27 @@ fn computes_and_follows_path() {
       .get_desired_velocity()
       .abs_diff_eq(Vec3::new(-0.5, -1.5, 0.0).normalize() * 2.0, 1e-2)
   );
+  // The straight path round the corner: the corner the desired velocity
+  // points at, then the target.
+  let corners = archipelago.get_agent(agent_1).unwrap().upcoming_corners();
+  assert_eq!(corners.len(), 2, "{corners:?}");
+  assert!(
+    corners[0].truncate().abs_diff_eq(Vec2::new(3.0, 2.0), 1e-2),
+    "{corners:?}"
+  );
+  // The target, sampled onto the mesh.
+  assert!(
+    corners[1].abs_diff_eq(Vec3::new(3.5, 3.5, 1.0), 1e-2),
+    "{corners:?}"
+  );
   // These agents are not on the nav mesh, so they don't do anything.
+  assert!(
+    archipelago
+      .get_agent(agent_off_mesh)
+      .unwrap()
+      .upcoming_corners()
+      .is_empty()
+  );
   assert_eq!(
     archipelago.get_agent(agent_off_mesh).unwrap().state(),
     AgentState::AgentNotOnNavMesh
