@@ -6,7 +6,55 @@ members = [
 ]
 resolver = "2"
 
+# rerecast rides bevy main as this fork does: the org's fork, on the branch zero's manifest
+# names for it.
 [patch.crates-io]
-dodgy_2d = { git = "https://github.com/andriyDev/dodgy", branch = "dependabot/cargo/glam-0.32.0" }
-bevy_rerecast = { path = "/mnt/code/f/rerecast/crates/bevy_rerecast" }
-bevy_rerecast_core = { path = "/mnt/code/f/rerecast/crates/bevy_rerecast_core" }
+bevy_rerecast = { git = "https://github.com/Progression-Labs/rerecast", branch = "bevy-main" }
+bevy_rerecast_core = { git = "https://github.com/Progression-Labs/rerecast", branch = "bevy-main" }
+
+# Bevy as the game builds it: the org's fork, on the branch zero's manifest names, every crate
+# of it (a crate left on upstream main mixes two bevys). Its glam is the one rerecast and the
+# game share.
+[patch."https://github.com/bevyengine/bevy"]
+bevy = { git = "https://github.com/Progression-Labs/bevy", branch = "claude/bsn-descendant-patch" }
+bevy_a11y = { git = "https://github.com/Progression-Labs/bevy", branch = "claude/bsn-descendant-patch" }
+bevy_animation = { git = "https://github.com/Progression-Labs/bevy", branch = "claude/bsn-descendant-patch" }
+bevy_app = { git = "https://github.com/Progression-Labs/bevy", branch = "claude/bsn-descendant-patch" }
+bevy_asset = { git = "https://github.com/Progression-Labs/bevy", branch = "claude/bsn-descendant-patch" }
+bevy_bsn = { git = "https://github.com/Progression-Labs/bevy", branch = "claude/bsn-descendant-patch" }
+bevy_camera = { git = "https://github.com/Progression-Labs/bevy", branch = "claude/bsn-descendant-patch" }
+bevy_color = { git = "https://github.com/Progression-Labs/bevy", branch = "claude/bsn-descendant-patch" }
+bevy_derive = { git = "https://github.com/Progression-Labs/bevy", branch = "claude/bsn-descendant-patch" }
+bevy_diagnostic = { git = "https://github.com/Progression-Labs/bevy", branch = "claude/bsn-descendant-patch" }
+bevy_ecs = { git = "https://github.com/Progression-Labs/bevy", branch = "claude/bsn-descendant-patch" }
+bevy_feathers = { git = "https://github.com/Progression-Labs/bevy", branch = "claude/bsn-descendant-patch" }
+bevy_gilrs = { git = "https://github.com/Progression-Labs/bevy", branch = "claude/bsn-descendant-patch" }
+bevy_gizmos = { git = "https://github.com/Progression-Labs/bevy", branch = "claude/bsn-descendant-patch" }
+bevy_image = { git = "https://github.com/Progression-Labs/bevy", branch = "claude/bsn-descendant-patch" }
+bevy_input = { git = "https://github.com/Progression-Labs/bevy", branch = "claude/bsn-descendant-patch" }
+bevy_input_focus = { git = "https://github.com/Progression-Labs/bevy", branch = "claude/bsn-descendant-patch" }
+bevy_internal = { git = "https://github.com/Progression-Labs/bevy", branch = "claude/bsn-descendant-patch" }
+bevy_light = { git = "https://github.com/Progression-Labs/bevy", branch = "claude/bsn-descendant-patch" }
+bevy_log = { git = "https://github.com/Progression-Labs/bevy", branch = "claude/bsn-descendant-patch" }
+bevy_macro_utils = { git = "https://github.com/Progression-Labs/bevy", branch = "claude/bsn-descendant-patch" }
+bevy_material = { git = "https://github.com/Progression-Labs/bevy", branch = "claude/bsn-descendant-patch" }
+bevy_math = { git = "https://github.com/Progression-Labs/bevy", branch = "claude/bsn-descendant-patch" }
+bevy_shape = { git = "https://github.com/Progression-Labs/bevy", branch = "claude/bsn-descendant-patch" }
+bevy_curve = { git = "https://github.com/Progression-Labs/bevy", branch = "claude/bsn-descendant-patch" }
+bevy_mesh = { git = "https://github.com/Progression-Labs/bevy", branch = "claude/bsn-descendant-patch" }
+bevy_picking = { git = "https://github.com/Progression-Labs/bevy", branch = "claude/bsn-descendant-patch" }
+bevy_platform = { git = "https://github.com/Progression-Labs/bevy", branch = "claude/bsn-descendant-patch" }
+bevy_ptr = { git = "https://github.com/Progression-Labs/bevy", branch = "claude/bsn-descendant-patch" }
+bevy_reflect = { git = "https://github.com/Progression-Labs/bevy", branch = "claude/bsn-descendant-patch" }
+bevy_scene = { git = "https://github.com/Progression-Labs/bevy", branch = "claude/bsn-descendant-patch" }
+bevy_state = { git = "https://github.com/Progression-Labs/bevy", branch = "claude/bsn-descendant-patch" }
+bevy_tasks = { git = "https://github.com/Progression-Labs/bevy", branch = "claude/bsn-descendant-patch" }
+bevy_text = { git = "https://github.com/Progression-Labs/bevy", branch = "claude/bsn-descendant-patch" }
+bevy_time = { git = "https://github.com/Progression-Labs/bevy", branch = "claude/bsn-descendant-patch" }
+bevy_transform = { git = "https://github.com/Progression-Labs/bevy", branch = "claude/bsn-descendant-patch" }
+bevy_ui = { git = "https://github.com/Progression-Labs/bevy", branch = "claude/bsn-descendant-patch" }
+bevy_ui_widgets = { git = "https://github.com/Progression-Labs/bevy", branch = "claude/bsn-descendant-patch" }
+bevy_utils = { git = "https://github.com/Progression-Labs/bevy", branch = "claude/bsn-descendant-patch" }
+bevy_window = { git = "https://github.com/Progression-Labs/bevy", branch = "claude/bsn-descendant-patch" }
+bevy_winit = { git = "https://github.com/Progression-Labs/bevy", branch = "claude/bsn-descendant-patch" }
+

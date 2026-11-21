@@ -25,6 +25,8 @@ thiserror = "2.0"
 [dev-dependencies]
 # Pin to 0.14.2 due to regression: https://github.com/google/googletest-rust/issues/823.
 googletest = "=0.14.2"
+# Its macros must match it: 0.14.4's expect a `death_tests` module 0.14.2 does not have.
+googletest_macro = "=0.14.2"
 
 [features]
 # Allows you to access avoidance data for an agent when debugging.

@@ -20,7 +20,9 @@ bevy_app = { git = "https://github.com/bevyengine/bevy", branch = "main", defaul
 bevy_asset = { git = "https://github.com/bevyengine/bevy", branch = "main", default-features = false }
 bevy_ecs = { git = "https://github.com/bevyengine/bevy", branch = "main", default-features = false }
 bevy_log = { git = "https://github.com/bevyengine/bevy", branch = "main", default-features = false }
-bevy_math = { git = "https://github.com/bevyengine/bevy", branch = "main", default-features = false }
+# Its rerecast does its maths through glam, which has none without std (or libm): std here, as
+# the game that uses it has (built alone, nothing else turned it on).
+bevy_math = { git = "https://github.com/bevyengine/bevy", branch = "main", default-features = false, features = ["std"] }
 bevy_platform = { git = "https://github.com/bevyengine/bevy", branch = "main", default-features = false }
 
 bevy_rerecast = { version = "0.5", default-features = false }
