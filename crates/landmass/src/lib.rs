@@ -77,6 +77,10 @@ pub struct ArchipelagoOptions<CS: CoordinateSystem> {
   /// would mean no avoidance responsibility, but a value of 0.0 is invalid and
   /// may panic. This should be a value between 0.0 and 1.0.
   pub reached_destination_avoidance_responsibility: f32,
+  /// How many of its straight path's next points each agent keeps
+  /// ([`Agent::upcoming_corners`]); 1 keeps only the one its desired velocity
+  /// points at. Measured: see [`UPCOMING_CORNERS`], the default.
+  pub upcoming_corners: usize,
 }
 
 impl<CS: CoordinateSystem<SampleDistance: FromAgentRadius>> FromAgentRadius
@@ -89,6 +93,7 @@ impl<CS: CoordinateSystem<SampleDistance: FromAgentRadius>> FromAgentRadius
       avoidance_time_horizon: 0.5,
       obstacle_avoidance_time_horizon: 0.25,
       reached_destination_avoidance_responsibility: 0.1,
+      upcoming_corners: UPCOMING_CORNERS,
     }
   }
 }
@@ -473,9 +478,19 @@ impl<CS: CoordinateSystem> Archipelago<CS> {
         // coming: the waypoint aimed at, then on until the target or an
         // animation link.
         let mut step = next_waypoint;
-        while let StraightPathStep::Waypoint(point) = step.1 {
+        let keep = self.archipelago_options.upcoming_corners.max(1);
+        loop {
+          let point = match step.1 {
+            StraightPathStep::Waypoint(point) => point,
+            // The path goes on by a link: its start is the last corner walked
+            // to.
+            StraightPathStep::AnimationLink { start_point, .. } => {
+              agent.current_corners.push(CS::from_landmass(&start_point));
+              break;
+            }
+          };
           agent.current_corners.push(CS::from_landmass(&point));
-          if agent.current_corners.len() >= agent::UPCOMING_CORNERS
+          if agent.current_corners.len() >= keep
             || step.0 == target_node_index_in_corridor
           {
             break;

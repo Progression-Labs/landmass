@@ -12,7 +12,7 @@ use crate::{
   Agent, AgentId, AgentState, AnimationLink, Archipelago, ArchipelagoOptions,
   Character, CharacterId, CoordinateSystem, FromAgentRadius, Island, IslandId,
   NavigationMesh, PathStep, PointSampleDistance3d, ReachedAnimationLink,
-  Transform, ValidNavigationMesh,
+  Transform, UPCOMING_CORNERS, ValidNavigationMesh,
   agent::PermittedAnimationLinks,
   coords::{XY, XYZ},
   nav_data::NodeRef,
@@ -1098,6 +1098,10 @@ fn agent_can_use_animation_link() {
   expect_eq!(*agent.get_desired_velocity(), Vec2::new(0.0, 1.0));
   expect_false!(agent.is_using_animation_link());
   expect_that!(agent.reached_animation_link(), none());
+  // Walking to the link: its start is the last corner it keeps, not none.
+  let corners = agent.upcoming_corners();
+  expect_eq!(corners.len(), 1);
+  expect_true!(corners[0].abs_diff_eq(Vec2::new(1.25, 1.9), 1e-3));
 
   // Move the agent to be touching the animation link.
   agent.position = Vec2::new(1.25, 1.5);
@@ -1246,4 +1250,74 @@ fn agent_could_not_find_path() {
   let agent = archipelago.get_agent_mut(agent_id).unwrap();
   expect_true!(agent.current_path.is_none());
   expect_eq!(agent.state(), AgentState::NoPath);
+}
+
+/// What keeping more of the straight path's corners costs an update: 100 agents
+/// at the start of a staircase corridor (a corner every cell) to its far end,
+/// `update` timed with 1 corner kept and with [`UPCOMING_CORNERS`]. Run by hand
+/// (`--ignored --nocapture`, release); its numbers are written beside the
+/// default.
+#[test]
+#[ignore = "a measurement, not a check"]
+fn upcoming_corners_cost() {
+  let cells: Vec<(i32, i32)> =
+    (0..40).map(|i| (i / 2 + i % 2, i / 2)).collect();
+  let mut vertices: Vec<Vec2> = Vec::new();
+  let mut index = HashMap::new();
+  let mut vertex = |x: i32, y: i32| -> usize {
+    *index.entry((x, y)).or_insert_with(|| {
+      vertices.push(Vec2::new(x as f32, y as f32));
+      vertices.len() - 1
+    })
+  };
+  let polygons: Vec<Vec<usize>> = cells
+    .iter()
+    .map(|&(x, y)| {
+      vec![
+        vertex(x, y),
+        vertex(x + 1, y),
+        vertex(x + 1, y + 1),
+        vertex(x, y + 1),
+      ]
+    })
+    .collect();
+  let nav_mesh = NavigationMesh {
+    vertices,
+    polygon_type_indices: vec![0; polygons.len()],
+    polygons,
+    height_mesh: None,
+  }
+  .validate()
+  .expect("is valid");
+  let last = *cells.last().unwrap();
+  let time = |corners: usize| {
+    let mut options = ArchipelagoOptions::from_agent_radius(0.1);
+    options.upcoming_corners = corners;
+    options.neighbourhood = 0.0;
+    let mut archipelago = Archipelago::<XY>::new(options);
+    archipelago.add_island(Island::new(
+      Transform::default(),
+      Arc::new(nav_mesh.clone()),
+    ));
+    for _ in 0..100 {
+      archipelago.add_agent({
+        let mut agent =
+          Agent::create(Vec2::new(0.5, 0.5), Vec2::ZERO, 0.1, 1.0, 1.0);
+        agent.current_target =
+          Some(Vec2::new(last.0 as f32 + 0.5, last.1 as f32 + 0.5));
+        agent
+      });
+    }
+    archipelago.update(0.01);
+    let start = std::time::Instant::now();
+    for _ in 0..200 {
+      archipelago.update(0.01);
+    }
+    start.elapsed().as_secs_f64() * 1e6 / 200.0
+  };
+  let (one, many) = (time(1), time(UPCOMING_CORNERS));
+  println!(
+    "upcoming corners: 1 kept {one:.0} us an update, {UPCOMING_CORNERS} kept \
+     {many:.0} us (100 agents)"
+  );
 }

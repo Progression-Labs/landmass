@@ -47,7 +47,13 @@ pub enum AgentState {
 }
 
 /// How many of its straight path's next points an agent keeps
-/// ([`Agent::upcoming_corners`]).
+/// ([`Agent::upcoming_corners`]) unless its archipelago says otherwise
+/// (`ArchipelagoOptions::upcoming_corners`). It buys a body that commits to a
+/// direction ahead of time the corners it will turn within its next walk (zero
+/// aims a walk about a second along its path); it costs a few more steps of
+/// the funnel each update: measured (`upcoming_corners_cost`, 100 agents on a
+/// staircase corridor, release, three runs) 617-640 us an update keeping 1
+/// against 640-658 us keeping 4: 9-27 us per 100 agents, 0.1-0.3 us an agent.
 pub const UPCOMING_CORNERS: usize = 4;
 
 /// An agent in an archipelago.
